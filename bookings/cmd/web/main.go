@@ -4,21 +4,34 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/agung96tm/udemy-modern-go/pkg/config"
-	"github.com/agung96tm/udemy-modern-go/pkg/handlers"
-	"github.com/agung96tm/udemy-modern-go/pkg/render"
+	"github.com/agung96tm/udemy-go-bookings/pkg/config"
+	"github.com/agung96tm/udemy-go-bookings/pkg/handlers"
+	"github.com/agung96tm/udemy-go-bookings/pkg/render"
+	"github.com/alexedwards/scs/v2"
 )
 
 const portNumber = ":8080"
+
+var app Application
+var cfg config.AppConfig
+var session *scs.SessionManager
 
 type Application struct {
 	config config.AppConfig
 }
 
 func main() {
-	var app Application
-	var cfg config.AppConfig
+	app.config = cfg
+	cfg.InProduction = false
+
+	session = scs.New()
+	session.Lifetime = 24 * time.Hour
+	session.Cookie.Persist = true
+	session.Cookie.SameSite = http.SameSiteLaxMode
+	session.Cookie.Secure = app.config.InProduction
+	cfg.Session = session
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
@@ -27,7 +40,6 @@ func main() {
 
 	cfg.TemplateCache = tc
 	cfg.UseCache = false
-	app.config = cfg
 
 	handlers.NewHandlers(handlers.NewRepo(&cfg))
 

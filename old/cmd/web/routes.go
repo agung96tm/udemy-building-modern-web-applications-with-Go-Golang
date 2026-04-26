@@ -15,6 +15,8 @@ func routes(app *Application) http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(NoSurf)
+	r.Use(SessionLoad)
 
 	r.Get("/", handlers.Repo.HomeHandler)
 	r.Get("/about", handlers.Repo.AboutHandler)
